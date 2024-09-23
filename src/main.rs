@@ -11,9 +11,21 @@ const IMAGE_WIDTH: i32 = 384;
 const IMAGE_HEIGHT: i32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as i32;
 
 fn ray_color(r: &Ray) -> Vector3 {
+    if hit_sphere(&Vector3::new(0., 0., -1.), 0.5, r) {
+        return Vector3::new(1., 0., 0.);
+    }
     let unit_dir = r.dir.normalized();
     let t = 0.5 * (unit_dir.y + 1.);
     (1. - t) * Vector3::new(0.5, 0.7, 1.) + t * Vector3::new(1., 1., 1.)
+}
+
+fn hit_sphere(center: &Vector3, radius: f64, r: &Ray) -> bool {
+    let oc = r.origin - *center;
+    let a = r.dir.length_squared();
+    let b = 2. * oc.dot(&r.dir);
+    let c = oc.length_squared() - radius * radius;
+    let discriminant = b * b - 4. * a * c;
+    discriminant > 0.
 }
 
 fn main() {
