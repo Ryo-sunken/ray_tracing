@@ -1,5 +1,8 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub};
 
+use rand_chacha::ChaCha8Rng;
+use rand_distr::{Distribution, Uniform};
+
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Vector3 {
     pub(crate) x: f64,
@@ -43,11 +46,37 @@ impl Vector3 {
             z: 0.,
         }
     }
+
     pub(crate) fn unit_z() -> Self {
         Self {
             x: 0.,
             y: 0.,
             z: 1.,
+        }
+    }
+
+    pub(crate) fn randu(dist: &Uniform<f64>, engine: &mut ChaCha8Rng) -> Self {
+        Self {
+            x: dist.sample(engine),
+            y: dist.sample(engine),
+            z: dist.sample(engine),
+        }
+    }
+
+    pub(crate) fn random_unit_vector(engine: &mut ChaCha8Rng) -> Self {
+        let a = Uniform::new(0., 2. * std::f64::consts::PI).sample(engine);
+        let z = Uniform::new(-1., 1.).sample(engine);
+        let r = ((1_f64 - z * z)).sqrt();
+        Self::new(r * a.cos(), r * a.sin(), z)
+    }
+
+    pub(crate) fn random_in_unit_sphere(engine: &mut ChaCha8Rng) -> Self {
+        let dist = Uniform::new(-1., 1.);
+        loop {
+            let p = Self::randu(&dist, engine);
+            if p.length_squared() < 1. {
+                return p;
+            }
         }
     }
 
