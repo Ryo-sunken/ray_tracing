@@ -21,23 +21,23 @@ impl Vector3 {
         }
     }
 
-    pub(crate) fn length(&self) -> f64 {
+    pub(crate) fn length(self) -> f64 {
         self.length_squared().sqrt()
     }
 
-    pub(crate) fn length_squared(&self) -> f64 {
-        self.dot(&self)
+    pub(crate) fn length_squared(self) -> f64 {
+        self.dot(self)
     }
 
-    pub(crate) fn normalized(&self) -> Self {
-        *self / self.length()
+    pub(crate) fn normalized(self) -> Self {
+        self / self.length()
     }
 
-    pub(crate) fn dot(&self, rhs: &Vector3) -> f64 {
+    pub(crate) fn dot(self, rhs: Vector3) -> f64 {
         self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
     }
 
-    pub(crate) fn cross(&self, rhs: &Vector3) -> Self {
+    pub(crate) fn cross(self, rhs: Vector3) -> Self {
         Self {
             x: self.y * rhs.z - self.z * rhs.y,
             y: self.z * rhs.x - self.x * rhs.z,
