@@ -20,6 +20,57 @@ impl HitRecord {
     }
 }
 
-pub(crate) trait Hittable {
-    fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool;
+pub(crate) enum Shape {
+    SPHERE(Sphere),
+}
+
+pub(crate) struct Hittable {
+    pub(crate) shape: Shape,
+}
+
+impl Hittable {
+    pub(crate) fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
+        match self.shape {
+            Shape::SPHERE(sphere) => {
+                let oc = r.origin - sphere.center;
+                let a = r.dir.length_squared();
+                let half_b = oc.dot(r.dir);
+                let c = oc.length_squared() - sphere.radius * sphere.radius;
+                let discriminant = half_b * half_b - a * c;
+
+                if discriminant > 0. {
+                    let root = discriminant.sqrt();
+                    let temp = (-half_b - root) / a;
+                    if t_min < temp && temp < t_max {
+                        rec.t = temp;
+                        rec.p = r.at(rec.t);
+                        let outward_normal = (rec.p - sphere.center) / sphere.radius;
+                        rec.set_face_normal(r, outward_normal);
+                        return true;
+                    }
+                    let temp = (-half_b + root) / a;
+                    if t_min < temp && temp < t_max {
+                        rec.t = temp;
+                        rec.p = r.at(rec.t);
+                        let outward_normal = (rec.p - sphere.center) / sphere.radius;
+                        rec.set_face_normal(r, outward_normal);
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Sphere {
+    center: Vector3,
+    radius: f64,
+}
+
+impl Sphere {
+    fn new(center: Vector3, radius: f64) -> Self {
+        Self { center, radius }
+    }
 }
