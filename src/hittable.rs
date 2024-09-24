@@ -9,6 +9,17 @@ pub(crate) struct HitRecord {
     pub(crate) front_face: bool,
 }
 
+impl Default for HitRecord {
+    fn default() -> Self {
+        Self {
+            p: Vector3::zero(),
+            normal: Vector3::zero(),
+            t: 0.,
+            front_face: false,
+        }
+    }
+}
+
 impl HitRecord {
     pub(crate) fn set_face_normal(&mut self, r: &Ray, outward_normal: Vector3) {
         self.front_face = r.dir.dot(outward_normal) < 0.;
@@ -29,6 +40,12 @@ pub(crate) struct Hittable {
 }
 
 impl Hittable {
+    pub(crate) fn sphere(center: Vector3, radius: f64) -> Self {
+        Self {
+            shape: Shape::SPHERE(Sphere::new(center, radius)),
+        }
+    }
+
     pub(crate) fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
         match self.shape {
             Shape::SPHERE(sphere) => {
@@ -64,7 +81,7 @@ impl Hittable {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct Sphere {
+struct Sphere {
     center: Vector3,
     radius: f64,
 }

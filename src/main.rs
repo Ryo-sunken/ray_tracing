@@ -4,6 +4,9 @@ mod hittable_list;
 mod ray;
 mod vec3;
 
+use hittable::{Hittable, HitRecord};
+use hittable_list::HittableList;
+
 use crate::color::write_color;
 use crate::ray::Ray;
 use crate::vec3::Vector3;
@@ -12,16 +15,15 @@ const ASPECT_RATIO: f64 = 16. / 9.;
 const IMAGE_WIDTH: i32 = 384;
 const IMAGE_HEIGHT: i32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as i32;
 
-fn ray_color(r: &Ray) -> Vector3 {
-    let t = hit_sphere(Vector3::new(0., 0., -1.), 0.5, r);
-    if t > 0. {
-        let n = (r.at(t) - Vector3::new(0., 0., -1.)).normalized();
-        0.5 * (n + Vector3::new(1., 1., 1.))
-    } else {
-        let unit_dir = r.dir.normalized();
-        let t = 0.5 * (unit_dir.y + 1.);
-        (1. - t) * Vector3::new(1., 1., 1.) + t * Vector3::new(0.5, 0.7, 1.)
+fn ray_color(r: &Ray, world: &HittableList) -> Vector3 {
+    let mut rec = HitRecord::default();
+    if world.hit(r, 0., std::f64::INFINITY, &mut rec) {
+        return 0.5 * (rec.normal + Vector3::one());
     }
+
+    let unit_dir = r.dir.normalized();
+    let t = 0.5 * (unit_dir.y + 1.);
+    (1. - t) * Vector3::one() + t * Vector3::new(0.5, 0.7, 1.)
 }
 
 fn hit_sphere(center: Vector3, radius: f64, r: &Ray) -> f64 {
@@ -47,10 +49,14 @@ fn main() {
     let focal_length = 1.;
 
     let origin = Vector3::zero();
-    let horizontal = Vector3::new(viewport_width, 0., 0.);
-    let vertical = Vector3::new(0., viewport_height, 0.);
+    let horizontal = viewport_width * Vector3::unit_x();
+    let vertical = viewport_height * Vector3::unit_y();
     let lower_left_corner =
-        origin - horizontal / 2. - vertical / 2. - Vector3::new(0., 0., focal_length);
+        origin - horizontal / 2. - vertical / 2. - focal_length * Vector3::unit_z();
+
+    let mut world = HittableList::new();
+    world.push(Hittable::sphere(Vector3::new(0., 0., -1.), 0.5));
+    world.push(Hittable::sphere(Vector3::new(0., -100.5, -1.), 100.));
 
     for i in (0..IMAGE_HEIGHT).rev() {
         for j in 0..IMAGE_WIDTH {
@@ -60,9 +66,7 @@ fn main() {
                 origin,
                 lower_left_corner + u * horizontal + v * vertical - origin,
             );
-            let pixel_color = ray_color(&r);
-
-            write_color(&pixel_color);
+            write_color(&ray_color(&r, &world));
         }
     }
 }

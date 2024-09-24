@@ -1,4 +1,3 @@
-use core::fmt;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub};
 
 #[derive(Debug, Clone, Copy)]
@@ -18,6 +17,37 @@ impl Vector3 {
             x: 0.,
             y: 0.,
             z: 0.,
+        }
+    }
+
+    pub(crate) fn one() -> Self {
+        Self {
+            x: 1.,
+            y: 1.,
+            z: 1.,
+        }
+    }
+
+    pub(crate) fn unit_x() -> Self {
+        Self {
+            x: 1.,
+            y: 0.,
+            z: 0.,
+        }
+    }
+
+    pub(crate) fn unit_y() -> Self {
+        Self {
+            x: 0.,
+            y: 1.,
+            z: 0.,
+        }
+    }
+    pub(crate) fn unit_z() -> Self {
+        Self {
+            x: 0.,
+            y: 0.,
+            z: 1.,
         }
     }
 
