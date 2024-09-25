@@ -55,11 +55,23 @@ fn main() {
     println!("{} {}", IMAGE_WIDTH, IMAGE_HEIGHT);
     println!("255");
 
-    let cam = Camera::new(90., ASPECT_RATIO);
+    let cam = Camera::new(
+        Vector3::new(-2., 2., 1.),
+        -Vector3::unit_z(),
+        Vector3::unit_y(),
+        90.,
+        ASPECT_RATIO,
+    );
     let mut world = HittableList::new();
     let r = (std::f64::consts::PI / 4.).cos();
-    world.push(Hittable::new(Shape::sphere(Vector3::new(-r, 0., -1.), r), Material::lambertian(Vector3::unit_z())));
-    world.push(Hittable::new(Shape::sphere(Vector3::new(r, 0., -1.), r), Material::lambertian(Vector3::unit_x())));
+    world.push(Hittable::new(
+        Shape::sphere(Vector3::new(-r, 0., -1.), r),
+        Material::lambertian(Vector3::unit_z()),
+    ));
+    world.push(Hittable::new(
+        Shape::sphere(Vector3::new(r, 0., -1.), r),
+        Material::lambertian(Vector3::unit_x()),
+    ));
     let mut engine = ChaCha8Rng::seed_from_u64(123456);
     let dist = Uniform::new(0., 1.);
 

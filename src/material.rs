@@ -1,6 +1,6 @@
 use rand_chacha::ChaCha8Rng;
-use rand_distr::Uniform;
 use rand_distr::Distribution;
+use rand_distr::Uniform;
 
 use crate::hittable::HitRecord;
 use crate::ray::Ray;

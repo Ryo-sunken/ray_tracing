@@ -9,16 +9,25 @@ pub(crate) struct Camera {
 }
 
 impl Camera {
-    pub(crate) fn new(vfov: f64, aspect_ratio: f64) -> Self {
+    pub(crate) fn new(
+        origin: Vector3,
+        lookat: Vector3,
+        vup: Vector3,
+        vfov: f64,
+        aspect_ratio: f64,
+    ) -> Self {
         let h = (vfov.to_radians() / 2.).tan();
         let viewport_height = 2. * h;
         let viewport_width = aspect_ratio * viewport_height;
         let focal_length = 1.;
-        let origin = Vector3::zero();
-        let horizontal = viewport_width * Vector3::unit_x();
-        let vertical = viewport_height * Vector3::unit_y();
-        let lower_left_corner =
-            origin - horizontal / 2. - vertical / 2. - focal_length * Vector3::unit_z();
+
+        let w = (origin - lookat).normalized();
+        let u = vup.cross(w).normalized();
+        let v = w.cross(u);
+
+        let horizontal = viewport_width * u;
+        let vertical = viewport_height * v;
+        let lower_left_corner = origin - horizontal / 2. - vertical / 2. - focal_length * w;
 
         Self {
             origin,
