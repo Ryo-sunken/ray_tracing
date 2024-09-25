@@ -108,6 +108,12 @@ impl Vector3 {
         *self - 2. * self.dot(n) * n
     }
 
+    pub(crate) fn refract(&self, n: Vector3, ratio: f64) -> Self {
+        let r_out_parallel = ratio * (*self + -self.dot(n) * n);
+        let r_out_perp = -(1. - r_out_parallel.length_squared()).sqrt() * n;
+        r_out_parallel + r_out_perp
+    }
+
     pub(crate) fn near_zero(&self) -> bool {
         let s = 1e-8;
         self.x.abs() < s && self.y.abs() < s && self.z.abs() < s

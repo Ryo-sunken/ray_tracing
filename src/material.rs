@@ -33,18 +33,21 @@ impl Material {
             Self::NONE => false,
             Self::LAMBERTIAN(lambertian) => {
                 let mut scatter_dir = rec.normal + Vector3::random_unit_vector(engine);
-                
+
                 if scatter_dir.near_zero() {
                     scatter_dir = rec.normal;
                 }
-                
+
                 *scattered = Ray::new(rec.p, scatter_dir);
                 *attenuation = lambertian.albedo;
                 true
-            },
+            }
             Self::METAL(metal) => {
                 let reflected = r.dir.normalized().reflect(rec.normal);
-                *scattered = Ray::new(rec.p, reflected + metal.fuzz * Vector3::random_in_unit_sphere(engine));
+                *scattered = Ray::new(
+                    rec.p,
+                    reflected + metal.fuzz * Vector3::random_in_unit_sphere(engine),
+                );
                 *attenuation = metal.albedo;
                 scattered.dir.dot(rec.normal) > 0.
             }

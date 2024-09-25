@@ -11,6 +11,7 @@ use camera::Camera;
 use color::write_color;
 use hittable::{HitRecord, Hittable};
 use hittable_list::HittableList;
+use material::Material;
 use rand::distributions::Distribution;
 use rand_chacha::rand_core::SeedableRng;
 use rand_chacha::ChaCha8Rng;
@@ -18,7 +19,6 @@ use rand_distr::Uniform;
 use ray::Ray;
 use shape::Shape;
 use vec3::Vector3;
-use material::Material;
 
 const ASPECT_RATIO: f64 = 16. / 9.;
 const IMAGE_WIDTH: i32 = 400;
