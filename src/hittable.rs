@@ -1,10 +1,13 @@
+use crate::material::Material;
 use crate::ray::Ray;
+use crate::shape::*;
 use crate::vec3::Vector3;
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct HitRecord {
     pub(crate) p: Vector3,
     pub(crate) normal: Vector3,
+    pub(crate) material: Material,
     pub(crate) t: f64,
     pub(crate) front_face: bool,
 }
@@ -14,6 +17,7 @@ impl Default for HitRecord {
         Self {
             p: Vector3::zero(),
             normal: Vector3::zero(),
+            material: Material::default(),
             t: 0.,
             front_face: false,
         }
@@ -31,19 +35,14 @@ impl HitRecord {
     }
 }
 
-pub(crate) enum Shape {
-    SPHERE(Sphere),
-}
-
 pub(crate) struct Hittable {
     pub(crate) shape: Shape,
+    pub(crate) material: Material,
 }
 
 impl Hittable {
-    pub(crate) fn sphere(center: Vector3, radius: f64) -> Self {
-        Self {
-            shape: Shape::SPHERE(Sphere::new(center, radius)),
-        }
+    pub(crate) fn new(shape: Shape, material: Material) -> Self {
+        Self { shape, material }
     }
 
     pub(crate) fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
@@ -63,6 +62,7 @@ impl Hittable {
                         rec.p = r.at(rec.t);
                         let outward_normal = (rec.p - sphere.center) / sphere.radius;
                         rec.set_face_normal(r, outward_normal);
+                        rec.material = self.material;
                         return true;
                     }
                     let temp = (-half_b + root) / a;
@@ -71,23 +71,12 @@ impl Hittable {
                         rec.p = r.at(rec.t);
                         let outward_normal = (rec.p - sphere.center) / sphere.radius;
                         rec.set_face_normal(r, outward_normal);
+                        rec.material = self.material;
                         return true;
                     }
                 }
                 return false;
             }
         }
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-struct Sphere {
-    center: Vector3,
-    radius: f64,
-}
-
-impl Sphere {
-    fn new(center: Vector3, radius: f64) -> Self {
-        Self { center, radius }
     }
 }

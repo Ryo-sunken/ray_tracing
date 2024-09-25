@@ -2,7 +2,9 @@ mod camera;
 mod color;
 mod hittable;
 mod hittable_list;
+mod material;
 mod ray;
+mod shape;
 mod vec3;
 
 use camera::Camera;
@@ -14,10 +16,12 @@ use rand_chacha::rand_core::SeedableRng;
 use rand_chacha::ChaCha8Rng;
 use rand_distr::Uniform;
 use ray::Ray;
+use shape::Shape;
 use vec3::Vector3;
+use material::Material;
 
 const ASPECT_RATIO: f64 = 16. / 9.;
-const IMAGE_WIDTH: i32 = 384;
+const IMAGE_WIDTH: i32 = 400;
 const IMAGE_HEIGHT: i32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as i32;
 const SAMPLES_PER_PIXEL: i32 = 100;
 const MAX_DEPTH: i32 = 50;
@@ -30,8 +34,15 @@ fn ray_color(r: &Ray, world: &HittableList, engine: &mut ChaCha8Rng, depth: i32)
     }
 
     if world.hit(r, 0.001, std::f64::INFINITY, &mut rec) {
-        let target = rec.p + rec.normal + Vector3::random_unit_vector(engine);
-        return 0.5 * ray_color(&Ray::new(rec.p, target - rec.p), &world, engine, depth - 1);
+        let mut scattered = Ray::new(Vector3::zero(), Vector3::zero());
+        let mut attenuation = Vector3::zero();
+        if rec
+            .material
+            .scatter(r, &rec, &mut attenuation, &mut scattered, engine)
+        {
+            return attenuation * ray_color(&scattered, world, engine, depth - 1);
+        }
+        return Vector3::zero();
     }
 
     let unit_dir = r.dir.normalized();
@@ -46,8 +57,18 @@ fn main() {
 
     let cam = Camera::new();
     let mut world = HittableList::new();
-    world.push(Hittable::sphere(Vector3::new(0., 0., -1.), 0.5));
-    world.push(Hittable::sphere(Vector3::new(0., -100.5, -1.), 100.));
+    let sphere = Shape::sphere(Vector3::new(0., 0., -1.), 0.5);
+    let sphere2 = Shape::sphere(Vector3::new(1., 0., -1.), 0.5);
+    let sphere3 = Shape::sphere(Vector3::new(-1., 0., -1.), 0.5);
+    let ground = Shape::sphere(Vector3::new(0., -100.5, -1.), 100.);
+    let sphere_lambertian = Material::lambertian(Vector3::new(0.7, 0.3, 0.3));
+    let sphere_metal1 = Material::metal(Vector3::new(0.8, 0.6, 0.2), 1.);
+    let sphere_metal2 = Material::metal(Vector3::new(0.8, 0.8, 0.8), 0.3);
+    let ground_lambertian = Material::lambertian(Vector3::new(0.8, 0.8, 0.));
+    world.push(Hittable::new(sphere, sphere_lambertian));
+    world.push(Hittable::new(ground, ground_lambertian));
+    world.push(Hittable::new(sphere2, sphere_metal1));
+    world.push(Hittable::new(sphere3, sphere_metal2));
     let mut engine = ChaCha8Rng::seed_from_u64(123456);
     let dist = Uniform::new(0., 1.);
 

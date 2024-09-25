@@ -66,7 +66,7 @@ impl Vector3 {
     pub(crate) fn random_unit_vector(engine: &mut ChaCha8Rng) -> Self {
         let a = Uniform::new(0., 2. * std::f64::consts::PI).sample(engine);
         let z = Uniform::new(-1., 1.).sample(engine);
-        let r = ((1_f64 - z * z)).sqrt();
+        let r = (1_f64 - z * z).sqrt();
         Self::new(r * a.cos(), r * a.sin(), z)
     }
 
@@ -102,6 +102,15 @@ impl Vector3 {
             y: self.z * rhs.x - self.x * rhs.z,
             z: self.x * rhs.y - self.y * rhs.x,
         }
+    }
+
+    pub(crate) fn reflect(&self, n: Vector3) -> Self {
+        *self - 2. * self.dot(n) * n
+    }
+
+    pub(crate) fn near_zero(&self) -> bool {
+        let s = 1e-8;
+        self.x.abs() < s && self.y.abs() < s && self.z.abs() < s
     }
 }
 
@@ -142,6 +151,18 @@ impl DivAssign<f64> for Vector3 {
         self.x /= rhs;
         self.y /= rhs;
         self.z /= rhs;
+    }
+}
+
+impl Mul for Vector3 {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x * rhs.x,
+            y: self.y * rhs.y,
+            z: self.z * rhs.z,
+        }
     }
 }
 
