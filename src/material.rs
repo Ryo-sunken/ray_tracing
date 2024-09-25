@@ -1,4 +1,6 @@
 use rand_chacha::ChaCha8Rng;
+use rand_distr::Uniform;
+use rand_distr::Distribution;
 
 use crate::hittable::HitRecord;
 use crate::ray::Ray;
@@ -9,6 +11,13 @@ pub(crate) enum Material {
     NONE,
     LAMBERTIAN(Lambertian),
     METAL(Metal),
+    DIELECTRIC(Dielectric),
+}
+
+fn schlick(cosine: f64, ref_idx: f64) -> f64 {
+    let r0 = (1. - ref_idx) / (1. + ref_idx);
+    let r0 = r0 * r0;
+    r0 + (1. - r0) * (1. - cosine).powi(5)
 }
 
 impl Material {
@@ -19,6 +28,10 @@ impl Material {
     pub(crate) fn metal(albedo: Vector3, fuzz: f64) -> Self {
         let fuzz = if fuzz < 1. { fuzz } else { 1. };
         Self::METAL(Metal { albedo, fuzz })
+    }
+
+    pub(crate) fn dielectric(ref_idx: f64) -> Self {
+        Self::DIELECTRIC(Dielectric { ref_idx })
     }
 
     pub(crate) fn scatter(
@@ -51,6 +64,29 @@ impl Material {
                 *attenuation = metal.albedo;
                 scattered.dir.dot(rec.normal) > 0.
             }
+            Self::DIELECTRIC(dielectric) => {
+                *attenuation = Vector3::one();
+                let ratio = if rec.front_face {
+                    dielectric.ref_idx.recip()
+                } else {
+                    dielectric.ref_idx
+                };
+                let unit_dir = r.dir.normalized();
+                let cos_theta = -unit_dir.dot(rec.normal).min(1.);
+                let sin_theta = (1. - cos_theta * cos_theta).sqrt();
+                let reflect_prob = schlick(cos_theta, ratio);
+                if ratio * sin_theta > 1. {
+                    let reflected = unit_dir.reflect(rec.normal);
+                    *scattered = Ray::new(rec.p, reflected);
+                } else if Uniform::new(0., 1.).sample(engine) < reflect_prob {
+                    let reflected = unit_dir.reflect(rec.normal);
+                    *scattered = Ray::new(rec.p, reflected);
+                } else {
+                    let refracted = unit_dir.refract(rec.normal, ratio);
+                    *scattered = Ray::new(rec.p, refracted);
+                }
+                true
+            }
         }
     }
 }
@@ -70,4 +106,9 @@ pub(crate) struct Lambertian {
 pub(crate) struct Metal {
     albedo: Vector3,
     fuzz: f64,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Dielectric {
+    ref_idx: f64,
 }

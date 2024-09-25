@@ -55,20 +55,11 @@ fn main() {
     println!("{} {}", IMAGE_WIDTH, IMAGE_HEIGHT);
     println!("255");
 
-    let cam = Camera::new();
+    let cam = Camera::new(90., ASPECT_RATIO);
     let mut world = HittableList::new();
-    let sphere = Shape::sphere(Vector3::new(0., 0., -1.), 0.5);
-    let sphere2 = Shape::sphere(Vector3::new(1., 0., -1.), 0.5);
-    let sphere3 = Shape::sphere(Vector3::new(-1., 0., -1.), 0.5);
-    let ground = Shape::sphere(Vector3::new(0., -100.5, -1.), 100.);
-    let sphere_lambertian = Material::lambertian(Vector3::new(0.7, 0.3, 0.3));
-    let sphere_metal1 = Material::metal(Vector3::new(0.8, 0.6, 0.2), 1.);
-    let sphere_metal2 = Material::metal(Vector3::new(0.8, 0.8, 0.8), 0.3);
-    let ground_lambertian = Material::lambertian(Vector3::new(0.8, 0.8, 0.));
-    world.push(Hittable::new(sphere, sphere_lambertian));
-    world.push(Hittable::new(ground, ground_lambertian));
-    world.push(Hittable::new(sphere2, sphere_metal1));
-    world.push(Hittable::new(sphere3, sphere_metal2));
+    let r = (std::f64::consts::PI / 4.).cos();
+    world.push(Hittable::new(Shape::sphere(Vector3::new(-r, 0., -1.), r), Material::lambertian(Vector3::unit_z())));
+    world.push(Hittable::new(Shape::sphere(Vector3::new(r, 0., -1.), r), Material::lambertian(Vector3::unit_x())));
     let mut engine = ChaCha8Rng::seed_from_u64(123456);
     let dist = Uniform::new(0., 1.);
 
