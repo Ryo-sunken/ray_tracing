@@ -80,6 +80,16 @@ impl Vector3 {
         }
     }
 
+    pub(crate) fn random_in_unit_disc(engine: &mut ChaCha8Rng) -> Self {
+        let dist = Uniform::new(-1., 1.);
+        loop {
+            let p = Self::new(dist.sample(engine), dist.sample(engine), 0.);
+            if p.length_squared() < 1. {
+                return p;
+            }
+        }
+    }
+
     pub(crate) fn length(self) -> f64 {
         self.length_squared().sqrt()
     }
