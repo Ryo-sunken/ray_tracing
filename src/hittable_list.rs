@@ -18,7 +18,7 @@ impl HittableList {
         self.objects.push(object);
     }
 
-    pub(crate) fn clear(&mut self, object: Hittable) {
+    pub(crate) fn clear(&mut self) {
         self.objects.clear();
     }
 
